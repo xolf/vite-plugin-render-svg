@@ -27,7 +27,7 @@ export interface Manifest {
 
 // @ts-expect-error Vite virtual module
 declare module 'virtual:render-svg' {
-  const manifest: Manifest
+  export const manifest: Manifest
 }
 
 interface FileMeta {
@@ -193,73 +193,72 @@ export function renderSVG({
           .on('change', onChange)
           .on('unlink', onChange)
 
-        return () => {
-          server.middlewares.use(async (req, res, next) => {
-            if (!req.url?.startsWith('/' + urlPrefix)) {
-              return next()
-            }
-            const match = req.url.match(/.*\/(?<name>[^/]*)\.(?<filetype>png|svg)(@(?<scale>[0-9])x)?$/)
-            if (!match || !files.has(match.groups!.name!)) {
-              return next()
-            }
-            const name = match.groups!.name!
-            const scale = match.groups?.scale ? parseInt(match.groups?.scale) : 1
+        // Insert a handler to respond to URL requests with live-rendered PNGs
+        server.middlewares.use(async (req, res, next) => {
+          if (!req.url?.startsWith('/' + urlPrefix)) {
+            return next()
+          }
+          const match = req.url.match(/.*\/(?<name>[^/]*)\.(?<filetype>png|svg)(@(?<scale>[0-9])x)?$/)
+          if (!match || !files.has(match.groups!.name!)) {
+            return next()
+          }
+          const name = match.groups!.name!
+          const scale = match.groups?.scale ? parseInt(match.groups?.scale) : 1
 
-            if (!scales.includes(scale)) {
-              return next()
-            }
+          if (!scales.includes(scale)) {
+            return next()
+          }
 
-            const file_meta = files.get(name)
-            if (!file_meta) {
-              return next()
-            }
-            let data: Buffer = undefined!
-            try {
-              data = await fs.readFile(file_meta.path)
-            } catch (e) {
-              console.error(`Error reading SVG file: ${file_meta.path}`, e)
-              return next()
-            }
+          const file_meta = files.get(name)
+          if (!file_meta) {
+            return next()
+          }
+          let data: Buffer = undefined!
+          try {
+            data = await fs.readFile(file_meta.path)
+          } catch (e) {
+            console.error(`Error reading SVG file: ${file_meta.path}`, e)
+            return next()
+          }
 
-            if (match.groups!.filetype === 'svg' && copyOriginal === false) {
-              // Request for an SVG file which we're not going to serve in production
-              return next()
-            }
+          if (match.groups!.filetype === 'svg' && copyOriginal === false) {
+            // Request for an SVG file which we wouldn't serve in production
+            return next()
+          }
 
-            // Hash file to produce an ETag
-            const hash = createHash('md5').update(data).digest('hex')
+          // Hash file to produce an ETag
+          const hash = createHash('md5').update(data).digest('hex')
 
-            if (req.headers['if-none-match'] === hash) {
-              res.writeHead(304)
-              return res.end()
-            }
+          if (req.headers['if-none-match'] === hash) {
+            res.writeHead(304)
+            return res.end()
+          }
 
-            if (match.groups!.filetype === 'svg') {
-              res.writeHead(200, {
-                'Content-Type': 'image/svg+xml',
-                ETag: hash,
-                'Cache-Control': 'no-cache'
-              })
-              res.end(data)
-              return
-            }
-
-            let svg: Buffer = undefined!
-            try {
-              svg = await renderFile(data, scale)
-            } catch (e) {
-              console.error(`Error rendering SVG file: ${file_meta.path}`, e)
-              return next()
-            }
-
+          if (match.groups!.filetype === 'svg') {
             res.writeHead(200, {
-              'Content-Type': 'image/png',
+              'Content-Type': 'image/svg+xml',
               ETag: hash,
               'Cache-Control': 'no-cache'
             })
-            res.end(svg)
+            res.end(data)
+            return
+          }
+
+          let svg: Buffer = undefined!
+          try {
+            svg = await renderFile(data, scale)
+          } catch (e) {
+            console.error(`Error rendering SVG file: ${file_meta.path}`, e)
+            return next()
+          }
+
+          res.writeHead(200, {
+            'Content-Type': 'image/png',
+            ETag: hash,
+            'Cache-Control': 'no-cache'
           })
-        }
+          res.end(svg)
+        })
       },
       async closeBundle() {
         await watcher.close()
