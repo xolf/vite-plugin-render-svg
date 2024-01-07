@@ -4,6 +4,10 @@
   "description": "Vite plugin to render SVG files to PNG",
   "license": "MIT",
   "author": "Russ Garrett",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/russss/vite-plugin-render-svg"
+  },
   "keywords": [
     "vite",
     "vite-plugin",
