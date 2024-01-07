@@ -1,5 +1,5 @@
 {
-  "name": "@russss/vite-plugin-render-svg",
+  "name": "vite-plugin-render-svg",
   "version": "1.0.0",
   "description": "Vite plugin to render SVG files to PNG",
   "license": "MIT",

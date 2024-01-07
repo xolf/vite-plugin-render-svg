@@ -7,30 +7,30 @@ In development mode, PNG files are rendered on the fly by the dev server. When b
 ## Installation
 
 ```bash
-    $ npm install -D @russss/vite-plugin-render-svg
+    $ npm install -D vite-plugin-render-svg
 ```
 
 ## Usage
 
 ```js
-    import { renderSVG } from "@russss/vite-plugin-render-svg"
-    
-    export default defineConfig({
-        plugins: [
-            renderSVG({
-                pattern: "src/icons/*.svg",
-                urlPrefix: "/icons/"
-            })
-        ]
+import { renderSVG } from 'vite-plugin-render-svg'
+
+export default defineConfig({
+  plugins: [
+    renderSVG({
+      pattern: 'src/icons/*.svg',
+      urlPrefix: '/icons/'
     })
+  ]
+})
 ```
 
 A file at `src/icons/example.svg` will now be accessible at `/icons/example.png` (and `/icons/example.png@2x` at twice the scale).
 
 ## Options
 
-| Option         | Type                                 | Description                                                                                   |
-| -------------- | ------------------------------------ | --------------------------------------------------------------------------------------------- |
-| `pattern`      | `string`                             | A glob pattern that specifies which SVG files to process.                                     |
-| `urlPrefix`    | `string`                             | The prefix which the resulting PNG files will be rendered at.                                 |
-| `scales`       | `int[]` (optional)                   | A list of scale factors which the PNG files will be rendered at (default: `[1, 2]`)           |
+| Option      | Type               | Description                                                                         |
+| ----------- | ------------------ | ----------------------------------------------------------------------------------- |
+| `pattern`   | `string`           | A glob pattern that specifies which SVG files to process.                           |
+| `urlPrefix` | `string`           | The prefix which the resulting PNG files will be rendered at.                       |
+| `scales`    | `int[]` (optional) | A list of scale factors which the PNG files will be rendered at (default: `[1, 2]`) |
