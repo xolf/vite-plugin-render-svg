@@ -77,7 +77,7 @@ function getFileName(fileMeta: FileMeta, scale: number, ext: string): string {
   if (fileMeta.hash) {
     hash = `-${fileMeta.hash.substring(0, 8)}`
   }
-  return `${fileMeta.name}${hash}.${ext}${suffix}`
+  return `${fileMeta.name}${hash}${suffix}.${ext}`
 }
 
 export function renderSVG({
